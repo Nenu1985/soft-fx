@@ -1,0 +1,41 @@
+version: "3.2"
+
+services:
+  task:
+    build:
+      context: ./
+    container_name: 'async_task'
+    depends_on:
+      - worker
+    environment:
+      BROKER_URL: rabbitmq
+    command: bash -c "python new_task.py"
+    networks:
+      - my_network
+  
+  worker:
+    build:
+      context: ./
+    container_name: 'worker'
+    depends_on:
+      - rabbitmq
+    environment:
+      BROKER_URL: rabbitmq
+    command: bash -c "python worker.py"
+    networks:
+      - my_network
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
+    hostname: 'rabbitmq'
+    ports:
+        - 5672:5672
+        - 15672:15672
+    volumes:
+      - /path/to/rabbitmq-persistence:/bitnami
+    networks:
+      - my_network
+networks:
+  my_network:
+    driver: bridge
